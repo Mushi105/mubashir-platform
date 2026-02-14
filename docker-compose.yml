@@ -1,11 +1,9 @@
 services:
-  # 1. Database (AI & Vector Ready)
+  # 1. Database (Vector Ready for AI)
   mubashir-db:
     image: ankane/pgvector:latest
     container_name: mubashir-db
     restart: always
-    ports:
-      - "5432:5432"
     environment:
       - POSTGRES_PASSWORD=mubashir.105
     volumes:
@@ -20,8 +18,6 @@ services:
     restart: always
     volumes:
       - ollama_data:/root/.ollama
-    ports:
-      - "11434:11434"
     networks:
       - mubashir-net
 
@@ -32,8 +28,6 @@ services:
       dockerfile: Dockerfile
     container_name: mubashir-dotnet-api
     restart: always
-    ports:
-      - "5000:8080"
     environment:
       - ConnectionStrings__DefaultConnection=Host=mubashir-db;Database=postgres;Username=postgres;Password=mubashir.105
     depends_on:
@@ -47,13 +41,28 @@ services:
       context: ./python-services
     container_name: mubashir-python-ai
     restart: always
-    ports:
-      - "8000:8000"
     environment:
       - DATABASE_URL=postgresql://postgres:mubashir.105@mubashir-db:5432/postgres
     depends_on:
       - mubashir-db
       - ollama
+    networks:
+      - mubashir-net
+
+  # 5. Nginx Gateway (Reverse Proxy)
+  nginx-gateway:
+    image: nginx:latest
+    container_name: mubashir-gateway
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - /etc/letsencrypt:/etc/letsencrypt  # SSL certificates ke liye
+    depends_on:
+      - dotnet-api
+      - python-ai
     networks:
       - mubashir-net
 
