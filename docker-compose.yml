@@ -1,0 +1,30 @@
+services:
+  # .NET 8 API (The Core)
+  dotnet-api:
+    build:
+      context: ./dotnet-backend
+      dockerfile: Dockerfile
+    container_name: mubashir-dotnet-api
+    ports:
+      - "5000:8080"
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=mubashir-db;Database=mubashir_db;Username=postgres;Password=mubashir.105
+    depends_on:
+      - mubashir-db
+
+  # FastAPI (The AI/Crawl Engine)
+  python-ai:
+    build:
+      context: ./python-services
+    container_name: mubashir-python-ai
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:mubashir.105@mubashir-db:5432/mubashir_db
+    depends_on:
+      - mubashir-db
+
+networks:
+  default:
+    external:
+      name: bridge
