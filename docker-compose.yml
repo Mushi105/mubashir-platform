@@ -1,5 +1,5 @@
 services:
-  # 1. Database (Vector Ready for AI)
+  # 1. Database (AI & Vector Ready)
   mubashir-db:
     image: ankane/pgvector:latest
     container_name: mubashir-db
@@ -49,17 +49,15 @@ services:
     networks:
       - mubashir-net
 
-  # 5. Nginx Gateway (Reverse Proxy)
+  # 5. Nginx Gateway (Cloudflare Friendly)
   nginx-gateway:
     image: nginx:latest
     container_name: mubashir-gateway
     restart: always
     ports:
       - "80:80"
-      - "443:443"
     volumes:
-      - ./nginx/conf.d:/etc/nginx/conf.d
-      - /etc/letsencrypt:/etc/letsencrypt  # SSL certificates ke liye
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
     depends_on:
       - dotnet-api
       - python-ai
