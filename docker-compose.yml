@@ -1,5 +1,5 @@
 services:
-  # 1. Database (AI & Vector Ready)
+  # 1. Database (PGVector for AI Search)
   mubashir-db:
     image: ankane/pgvector:latest
     container_name: mubashir-db
@@ -21,7 +21,7 @@ services:
     networks:
       - mubashir-net
 
-  # 3. .NET 9 API (Business Logic)
+  # 3. .NET 9 API (Core Business Logic)
   dotnet-api:
     build:
       context: ./dotnet-backend
@@ -35,7 +35,7 @@ services:
     networks:
       - mubashir-net
 
-  # 4. FastAPI (AI Crawler)
+  # 4. FastAPI (Python AI Scraper)
   python-ai:
     build:
       context: ./python-services
@@ -49,15 +49,18 @@ services:
     networks:
       - mubashir-net
 
-  # 5. Nginx Gateway (Cloudflare Friendly)
+  # 5. Nginx Gateway (SSL & Reverse Proxy)
   nginx-gateway:
     image: nginx:latest
     container_name: mubashir-gateway
     restart: always
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - ./certbot_temp:/var/www/certbot:ro
     depends_on:
       - dotnet-api
       - python-ai
