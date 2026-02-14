@@ -1,5 +1,5 @@
 services:
-  # Database (AI & Vector Ready)
+  # 1. Database (AI & Vector Ready)
   mubashir-db:
     image: ankane/pgvector:latest
     container_name: mubashir-db
@@ -10,8 +10,22 @@ services:
       - POSTGRES_PASSWORD=mubashir.105
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - mubashir-net
 
-  # .NET 8 API
+  # 2. AI Engine (Ollama)
+  ollama:
+    image: ollama/ollama:latest
+    container_name: mubashir-ai-engine
+    restart: always
+    volumes:
+      - ollama_data:/root/.ollama
+    ports:
+      - "11434:11434"
+    networks:
+      - mubashir-net
+
+  # 3. .NET 9 API (Business Logic)
   dotnet-api:
     build:
       context: ./dotnet-backend
@@ -24,8 +38,10 @@ services:
       - ConnectionStrings__DefaultConnection=Host=mubashir-db;Database=postgres;Username=postgres;Password=mubashir.105
     depends_on:
       - mubashir-db
+    networks:
+      - mubashir-net
 
-  # FastAPI (AI Crawler)
+  # 4. FastAPI (AI Crawler)
   python-ai:
     build:
       context: ./python-services
@@ -37,6 +53,14 @@ services:
       - DATABASE_URL=postgresql://postgres:mubashir.105@mubashir-db:5432/postgres
     depends_on:
       - mubashir-db
+      - ollama
+    networks:
+      - mubashir-net
+
+networks:
+  mubashir-net:
+    driver: bridge
 
 volumes:
   postgres_data:
+  ollama_data:
