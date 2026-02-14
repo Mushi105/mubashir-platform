@@ -1,4 +1,4 @@
-i# Use .NET 9.0 SDK for building
+# Use .NET 9.0 SDK for building
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 COPY ["Mubashir.Api/Mubashir.Api.csproj", "Mubashir.Api/"]
