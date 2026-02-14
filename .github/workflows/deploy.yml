@@ -1,0 +1,30 @@
+name: Continuous Deployment
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Contabo via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 62.171.155.216
+          username: root
+          password: ${{ secrets.SERVER_PASSWORD }}
+          script: |
+            mkdir -p /root/mubashir-platform
+            cd /root/mubashir-platform
+            # Agar repo nahi hai to clone karein, warna pull karein
+            if [ ! -d ".git" ]; then
+              git clone https://github.com/Mushi105/mubashir-platform.git .
+            else
+              git pull origin main
+            fi
+            # Docker Containers ko build aur restart karein
+            docker compose up --build -d
