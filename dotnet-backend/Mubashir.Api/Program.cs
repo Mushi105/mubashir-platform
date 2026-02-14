@@ -1,41 +1,44 @@
+using Npgsql;
+using System.Data;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// Database Connection String (Docker network ke liye)
+string connectionString = "Host=mubashir-db;Database=postgres;Username=postgres;Password=mubashir.105";
 
-var summaries = new[]
+// --- ENDPOINT: View Tech News via .NET ---
+app.MapGet("/api/banking-news", async () =>
 {
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+    var newsList = new List<object>();
+    using var conn = new NpgsqlConnection(connectionString);
+    await conn.OpenAsync();
 
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
+    using var cmd = new NpgsqlCommand("SELECT title, source, status FROM tech_news", conn);
+    using var reader = await cmd.ExecuteReaderAsync();
+    
+    while (await reader.ReadAsync())
+    {
+        newsList.Add(new { 
+            Title = reader.GetString(0), 
+            Source = reader.GetString(1), 
+            Status = reader.GetString(2) 
+        });
+    }
+
+    return Results.Ok(new { System = "Mubashir .NET 9 Portal", Data = newsList });
+});
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
