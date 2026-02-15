@@ -1,5 +1,4 @@
 services:
-  # 1. Database (PGVector for AI Search)
   mubashir-db:
     image: ankane/pgvector:latest
     container_name: mubashir-db
@@ -11,7 +10,6 @@ services:
     networks:
       - mubashir-net
 
-  # 2. AI Engine (Ollama)
   ollama:
     image: ollama/ollama:latest
     container_name: mubashir-ai-engine
@@ -21,7 +19,6 @@ services:
     networks:
       - mubashir-net
 
-  # 3. .NET 9 API (Core Business Logic)
   dotnet-api:
     build:
       context: ./dotnet-backend
@@ -35,7 +32,6 @@ services:
     networks:
       - mubashir-net
 
-  # 4. Vue.js Frontend (Mubashir's Portfolio & Modules)
   mubashir-frontend:
     build:
       context: ./mubashir-frontend-vue
@@ -47,7 +43,6 @@ services:
     depends_on:
       - dotnet-api
 
-  # 5. Python Services (AI Scrapers/FastAPI)
   python-ai:
     build:
       context: ./python-services
@@ -61,7 +56,6 @@ services:
     networks:
       - mubashir-net
 
-  # 6. Nginx Gateway (SSL & Routing)
   nginx-gateway:
     image: nginx:latest
     container_name: mubashir-gateway
@@ -81,6 +75,7 @@ services:
 
 networks:
   mubashir-net:
+    name: mubashir-net  # Force name without prefix
     driver: bridge
 
 volumes:
