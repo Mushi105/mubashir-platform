@@ -35,7 +35,19 @@ services:
     networks:
       - mubashir-net
 
-  # 4. FastAPI (Python AI Scraper)
+  # 4. Vue.js Frontend (Mubashir's Portfolio & Modules)
+  mubashir-frontend:
+    build:
+      context: ./mubashir-frontend-vue
+      dockerfile: Dockerfile
+    container_name: mubashir-frontend
+    restart: always
+    networks:
+      - mubashir-net
+    depends_on:
+      - dotnet-api
+
+  # 5. Python Services (AI Scrapers/FastAPI)
   python-ai:
     build:
       context: ./python-services
@@ -49,7 +61,7 @@ services:
     networks:
       - mubashir-net
 
-  # 5. Nginx Gateway (SSL & Reverse Proxy)
+  # 6. Nginx Gateway (SSL & Routing)
   nginx-gateway:
     image: nginx:latest
     container_name: mubashir-gateway
@@ -62,8 +74,8 @@ services:
       - /etc/letsencrypt:/etc/letsencrypt:ro
       - ./certbot_temp:/var/www/certbot:ro
     depends_on:
+      - mubashir-frontend
       - dotnet-api
-      - python-ai
     networks:
       - mubashir-net
 

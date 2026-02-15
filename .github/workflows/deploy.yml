@@ -20,11 +20,13 @@ jobs:
           script: |
             mkdir -p /root/mubashir-platform
             cd /root/mubashir-platform
-            # Agar repo nahi hai to clone karein, warna pull karein
+            # Repository management
             if [ ! -d ".git" ]; then
               git clone https://github.com/Mushi105/mubashir-platform.git .
             else
               git pull origin main
             fi
-            # Docker Containers ko build aur restart karein
+            # Puray platform ko build aur restart karna
             docker compose up --build -d
+            # Cleanup old images to save space
+            docker image prune -f
